@@ -1,3 +1,4 @@
+/*eslint disable*/
 import { MongoClient } from 'mongodb';
 
 class DBClient {
@@ -32,6 +33,6 @@ class DBClient {
   }
 }
 
-// Create and export an instance of DBClient
+// Creating and exporting an instance of DBClient
 const dbClient = new DBClient();
 export default dbClient;
