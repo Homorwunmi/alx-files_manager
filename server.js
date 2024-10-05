@@ -5,6 +5,8 @@ import routes from './routes/index';
 const app = express();
 const port = process.env.PORT || 5000;
 
+app.use(express.json());
+
 // Loading routes from routes/index.js
 app.use('/', routes);
 
