@@ -21,30 +21,39 @@ class AuthController {
    */
   static async getConnect(req, res) {
     const authHeader = req.headers.authorization || '';
-    const base64Credentials = authHeader.split(' ')[1] || '';
-    const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
-    const [email, password] = credentials.split(':');
 
-    // confirm if email and password are provided
-    if (!email || !password) {
-        return res.status(401).json({ error: 'Unauthorized' });
+    if (!authHeader.startswith('Basic ')) {
+        return res.status(401).json({ error: 'Unauthourized' });
     }
 
-    // Find user in database
-    const user = await dbClient.db.collection('users').findone({ email, password: sha1(password) });
-    if (!user) {
-        return res.status(401).json({ error: 'Unauthorized '});
+    try {
+      const base64Credentials = authHeader.split(' ')[1] || '';
+      const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
+      const [email, password] = credentials.split(':');
+
+      // confirm if email and password are provided
+      if (!email || !password) {
+          return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      // Find user in database
+      const user = await dbClient.db.collection('users').findone({ email, password: sha1(password) });
+      if (!user) {
+          return res.status(401).json({ error: 'Unauthorized '});
+      }
+
+      // Generating a token using 
+      const token = uuidv4();
+      const tokenKey = 'auth_${token}';
+
+      // Store user ID in Redis with expiration of 24 hours
+      await redisClient.set(tokenKey, user._id.toString(), 86400);
+
+      // Return the token
+      return res.status(200).json({ token });
+    } catch (err) {
+      return res.status(401).json({ error: 'Unauthorized' });
     }
-
-    // Generating a token using 
-    const token = uuidv4();
-    const tokenKey = 'auth_${token}';
-
-    // Store user ID in Redis with expiration of 24 hours
-    await redisClient.set(tokenKey, user._id.toString(), 86400);
-
-    // Return the token
-    return res.status(200).json({ token });
   }
 
   /**
