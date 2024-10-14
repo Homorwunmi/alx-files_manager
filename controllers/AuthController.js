@@ -44,7 +44,7 @@ class AuthController {
     await redisClient.set(tokenKey, user._id.toString(), 86400);
 
     // Return the token
-    return res.status(200).json({ token })
+    return res.status(200).json({ token });
   }
 
   /**
