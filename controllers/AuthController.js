@@ -20,39 +20,36 @@ class AuthController {
    * with a status code 200
    */
   static async getConnect(request, response) {
-    const authHeader = request.header('Authorization') || '';
+    const Authorization = request.header('Authorization') || '';
 
-    const encodedCredentials = authHeader.split(' ')[1];
+    const credentials = Authorization.split(' ')[1];
 
-    if (!encodedCredentials) {
-      return response.status(401).json({ error: 'Unauthorized' });
-    }
+    if (!credentials) { return response.status(401).send({ error: 'Unauthorized' }); }
 
-    const decodedCredentials = Buffer.from(encodedCredentials, 'base64').toString('utf-8');
+    const decodedCredentials = Buffer.from(credentials, 'base64').toString(
+      'utf-8',
+    );
+
     const [email, password] = decodedCredentials.split(':');
 
-    if (!email || !password) {
-      return response.status(401).json({ error: 'Unauthorized' });
-    }
+    if (!email || !password) { return response.status(401).send({ error: 'Unauthorized' }); }
 
-    const hashedPassword = sha1(password);
+    const sha1Password = sha1(password);
 
     const user = await userUtils.getUser({
       email,
-      password: hashedPassword,
+      password: sha1Password,
     });
 
-    if (!user) {
-      return response.status(401).json({ error: 'Unauthorized' });
-    }
+    if (!user) return response.status(401).send({ error: 'Unauthorized' });
 
     const token = uuidv4();
-    const authKey = `auth_${token}`;
-    const expirationInSeconds = 24 * 3600; // 24 hours
+    const key = `auth_${token}`;
+    const hoursForExpiration = 24;
 
-    await redisClient.set(authKey, user._id.toString(), expirationInSeconds);
+    await redisClient.set(key, user._id.toString(), hoursForExpiration * 3600);
 
-    return response.status(200).json({ token });
+    return response.status(200).send({ token });
   }
 
   /**
