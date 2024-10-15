@@ -46,7 +46,7 @@ class AuthController {
       return response.status(401).json({ error: 'Unauthorized' });
     }
 
-    const token = generateUUID();
+    const token = uuidv4();
     const authKey = `auth_${token}`;
     const expirationInSeconds = 24 * 3600; // 24 hours
 
