@@ -27,35 +27,42 @@ class UsersController {
     const { email, password } = request.body;
 
     // Check if email is provided
-    if (!email) {
-      return response.status(400).json({ error: 'Missing email' });
-    }
+    if (!email) return response.status(400).send({ error: 'Missing email' });
 
     // Check if password is provided
-    if (!password) {
-      return response.status(400).json({ error: 'Missing password' });
-    }
+    if (!password) { return response.status(400).send({ error: 'Missing password' }); }
 
     // Check if the email already exists in the database
-    const userExists = await dbClient.db.collection('users').findOne({ email });
-    if (userExists) {
-      return response.status(400).json({ error: 'Already exist' });
-    }
+    const emailExists = await dbClient.usersCollection.findOne({ email });
+
+    if (emailExists) { return response.status(400).send({ error: 'Already exist' }); }
 
     // Hash the password using SHA1
-    const hashedPassword = sha1(password);
+    const sha1Password = sha1(password);
 
     // Insert the new user into the database
-    let insertionResult;
+    let result;
     try {
-      insertionResult = await dbClient.db.collection('users').insertOne({
-      email,
-      password: hashedPassword,
+      result = await dbClient.usersCollection.insertOne({
+        email,
+        password: sha1Password,
       });
-
-      // Return the new user with the email and id only
-      return response.status(201).json({ id: insertionResult.insertedId, email });
+    } catch (err) {
+      await userQueue.add({});
+      return response.status(500).send({ error: 'Error creating user.' });
     }
+
+    const user = {
+      id: result.insertedId,
+      email,
+    };
+
+    await userQueue.add({
+      userId: result.insertedId.toString(),
+    });
+
+    return response.status(201).send(user);
+  }
 
   /**
    * should retrieve the user base on the token used:
@@ -71,16 +78,13 @@ class UsersController {
       _id: ObjectId(userId),
     });
 
-    if (!user) {
-      return response.status(401).json({ error: 'Unauthorized' });
-    }
+    if (!user) return response.status(401).send({ error: 'Unauthorized' });
 
-    const userInfo = { id: user._id, ...user };
-    delete userInfo._id;
-    delete userInfo.password;
+    const processedUser = { id: user._id, ...user };
+    delete processedUser._id;
+    delete processedUser.password;
 
-    // Return the user's details
-    return response.status(200).json(userInfo);
+    return response.status(200).send(processedUser);
   }
 }
 
