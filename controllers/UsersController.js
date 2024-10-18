@@ -29,13 +29,11 @@ class UsersController {
 
     if (!email) return response.status(400).send({ error: 'Missing email' });
 
-    if (!password)
-      return response.status(400).send({ error: 'Missing password' });
+    if (!password) return response.status(400).send({ error: 'Missing password' });
 
     const emailExists = await dbClient.usersCollection.findOne({ email });
 
-    if (emailExists)
-      return response.status(400).send({ error: 'Already exist' });
+    if (emailExists) return response.status(400).send({ error: 'Already exist' });
 
     const sha1Password = sha1(password);
 

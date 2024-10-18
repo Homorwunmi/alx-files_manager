@@ -24,17 +24,15 @@ class AuthController {
 
     const credentials = Authorization.split(' ')[1];
 
-    if (!credentials)
-      return response.status(401).send({ error: 'Unauthorized' });
+    if (!credentials) return response.status(401).send({ error: 'Unauthorized' });
 
     const decodedCredentials = Buffer.from(credentials, 'base64').toString(
-      'utf-8'
+      'utf-8',
     );
 
     const [email, password] = decodedCredentials.split(':');
 
-    if (!email || !password)
-      return response.status(401).send({ error: 'Unauthorized' });
+    if (!email || !password) return response.status(401).send({ error: 'Unauthorized' });
 
     const sha1Password = sha1(password);
 
