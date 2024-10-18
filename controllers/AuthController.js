@@ -1,12 +1,12 @@
-/*eslint-disable*/
 import { v4 as uuidv4 } from 'uuid';
 import sha1 from 'sha1';
-import userUtils from '../utils/user';
 import redisClient from '../utils/redis';
+import userUtils from '../utils/user';
 
 class AuthController {
   /**
-   * should sign-in the user by generating a new authentication token:
+   * Should sign-in the user by generating a new authentication token
+   *
    * By using the header Authorization and the technique of the Basic auth
    * (Base64 of the <email>:<password>), find the user associate to this email
    * and with this password (reminder: we are storing the SHA1 of the password)
@@ -24,15 +24,17 @@ class AuthController {
 
     const credentials = Authorization.split(' ')[1];
 
-    if (!credentials) { return response.status(401).send({ error: 'Unauthorized' }); }
+    if (!credentials)
+      return response.status(401).send({ error: 'Unauthorized' });
 
     const decodedCredentials = Buffer.from(credentials, 'base64').toString(
-      'utf-8',
+      'utf-8'
     );
 
     const [email, password] = decodedCredentials.split(':');
 
-    if (!email || !password) { return response.status(401).send({ error: 'Unauthorized' }); }
+    if (!email || !password)
+      return response.status(401).send({ error: 'Unauthorized' });
 
     const sha1Password = sha1(password);
 
@@ -53,18 +55,17 @@ class AuthController {
   }
 
   /**
-   * should sign-out the user based on the token:
-   * 
+   * Should sign-out the user based on the token
+   *
    * Retrieve the user based on the token:
    * If not found, return an error Unauthorized with a status code 401
-   * Otherwise, delete the token in Redis and return nothing with a status code 204
+   * Otherwise, delete the token in Redis and return nothing with a
+   * status code 204
    */
   static async getDisconnect(request, response) {
     const { userId, key } = await userUtils.getUserIdAndKey(request);
 
-    if (!userId) {
-      return response.status(401).json({ error: 'Unauthorized' });
-    }
+    if (!userId) return response.status(401).send({ error: 'Unauthorized' });
 
     await redisClient.del(key);
 

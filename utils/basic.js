@@ -1,4 +1,3 @@
-/*eslint-disable*/
 import { ObjectId } from 'mongodb';
 
 /**

@@ -1,4 +1,3 @@
-/*eslint-disable*/
 import redis from 'redis';
 import { promisify } from 'util';
 
@@ -15,7 +14,7 @@ class RedisClient {
     });
 
     this.client.on('connect', () => {
-      // console.log('Redis client connected to the server');
+      //   console.log('Redis client connected to the server');
     });
   }
 

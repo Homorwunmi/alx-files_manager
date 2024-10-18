@@ -1,4 +1,3 @@
-/*eslint-disable*/
 import { ObjectId } from 'mongodb';
 import mime from 'mime-types';
 import Queue from 'bull';
@@ -68,17 +67,19 @@ class FilesController {
     if (!user) return response.status(401).send({ error: 'Unauthorized' });
 
     const { error: validationError, fileParams } = await fileUtils.validateBody(
-      request,
+      request
     );
 
-    if (validationError) { return response.status(400).send({ error: validationError }); }
+    if (validationError)
+      return response.status(400).send({ error: validationError });
 
-    if (fileParams.parentId !== 0 && !basicUtils.isValidId(fileParams.parentId)) { return response.status(400).send({ error: 'Parent not found' }); }
+    if (fileParams.parentId !== 0 && !basicUtils.isValidId(fileParams.parentId))
+      return response.status(400).send({ error: 'Parent not found' });
 
     const { error, code, newFile } = await fileUtils.saveFile(
       userId,
       fileParams,
-      FOLDER_PATH,
+      FOLDER_PATH
     );
 
     if (error) {
@@ -117,7 +118,8 @@ class FilesController {
     if (!user) return response.status(401).send({ error: 'Unauthorized' });
 
     // Mongo Condition for Id
-    if (!basicUtils.isValidId(fileId) || !basicUtils.isValidId(userId)) { return response.status(404).send({ error: 'Not found' }); }
+    if (!basicUtils.isValidId(fileId) || !basicUtils.isValidId(userId))
+      return response.status(404).send({ error: 'Not found' });
 
     const result = await fileUtils.getFile({
       _id: ObjectId(fileId),
@@ -166,7 +168,8 @@ class FilesController {
     if (Number.isNaN(page)) page = 0;
 
     if (parentId !== 0 && parentId !== '0') {
-      if (!basicUtils.isValidId(parentId)) { return response.status(401).send({ error: 'Unauthorized' }); }
+      if (!basicUtils.isValidId(parentId))
+        return response.status(401).send({ error: 'Unauthorized' });
 
       parentId = ObjectId(parentId);
 
@@ -174,7 +177,8 @@ class FilesController {
         _id: ObjectId(parentId),
       });
 
-      if (!folder || folder.type !== 'folder') { return response.status(200).send([]); }
+      if (!folder || folder.type !== 'folder')
+        return response.status(200).send([]);
     }
 
     const pipeline = [
@@ -210,7 +214,7 @@ class FilesController {
   static async putPublish(request, response) {
     const { error, code, updatedFile } = await fileUtils.publishUnpublish(
       request,
-      true,
+      true
     );
 
     if (error) return response.status(code).send({ error });
@@ -232,7 +236,7 @@ class FilesController {
   static async putUnpublish(request, response) {
     const { error, code, updatedFile } = await fileUtils.publishUnpublish(
       request,
-      false,
+      false
     );
 
     if (error) return response.status(code).send({ error });
@@ -261,13 +265,15 @@ class FilesController {
     const size = request.query.size || 0;
 
     // Mongo Condition for Id
-    if (!basicUtils.isValidId(fileId)) { return response.status(404).send({ error: 'Not found' }); }
+    if (!basicUtils.isValidId(fileId))
+      return response.status(404).send({ error: 'Not found' });
 
     const file = await fileUtils.getFile({
       _id: ObjectId(fileId),
     });
 
-    if (!file || !fileUtils.isOwnerAndPublic(file, userId)) { return response.status(404).send({ error: 'Not found' }); }
+    if (!file || !fileUtils.isOwnerAndPublic(file, userId))
+      return response.status(404).send({ error: 'Not found' });
 
     if (file.type === 'folder') {
       return response
